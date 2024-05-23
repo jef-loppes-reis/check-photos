@@ -15,22 +15,27 @@ class App():
     if not path.exists(_path_temp):
         mkdir(_path_temp)
 
-    # _df = read_excel('./data/primeira_lista_check.xlsx').head(5)
-    _df = read_pickle(f'{_path_data}/primeira_lista_check')
-    # _df.iloc[:, 7:] = _df.iloc[:, 7:].astype(bool)
-    _df_copy = _df[
-            ~((_df.iloc[:, 7]) & \
-            (_df.iloc[:, 8]) & \
-            (_df.iloc[:, 9]) & \
-            (_df.iloc[:, 10]) & \
-            (_df.iloc[:, 11]) & \
-            (_df.iloc[:, 12]))
-        ]
+    _df = read_pickle(f'{_path_temp}/_df_copy_temp')
+    # _df_temp = read_pickle(f'{_path_data}/_df_copy_temp')
+
+    # for idx in _df.index:
+    #     row = _df.iloc[idx, 7:12].copy()
+    #     ready = _df.iloc[idx, 13].copy()
+    #     if not ready:
+    #         for x in row:
+    #             if x:
+    #                 _df.iloc[idx, 13] = True
+    #             break
+
+    _df_copy = _df.query('~ready')
 
     # Indices
+    _lock_index: int = list(_df_copy.index)[0]
     _current_index: int = list(_df_copy.index)[0]
     _last_index: int = list(_df_copy.index)[0]
     _max_index: int = list(_df_copy.index)[-1:][0]
+
+    print(_lock_index, _current_index)
 
     # Condições
     _last_data = [False, False, False, False, False, False]
@@ -50,9 +55,8 @@ class App():
     _frame_botoes = tk.Frame(_root)
     _frame_botoes.pack(pady=5)
 
-    _index_label= tk.Label(_root, text="")
+    _index_label = tk.Label(_root, text="")
     _index_label.pack(side='bottom', anchor='se', padx=10, pady=10)
-
 
     def abrir_imagem(self, df_produtos: DataFrame, data: list[bool]):
         print(f"""
@@ -61,7 +65,8 @@ class App():
               Indice maximo: {self._max_index},
               Data atual: {self._last_data}
             """)
-        self._index_label.config(text=f"Índice: {self._current_index + 1} de {df_produtos.item_id.count()}")
+        self._index_label.config(
+            text=f"Índice: {self._current_index} de {df_produtos.item_id.count()}")
 
         df_row = df_produtos.loc[self._current_index].copy()
 
@@ -84,62 +89,61 @@ class App():
         else:
             self.set_values_df([False, False, False, False, False, False])
             self.alter_data([False, False, False, False, False, False])
-        
-
 
     def sim_marca_agua(self, _df_produtos: DataFrame) -> None:
         # Ação a ser realizada quando o botão "Sim" é clicado
-        self.abrir_imagem(df_produtos=_df_produtos, data=[True, False, False, False, False, False])
+        self.abrir_imagem(df_produtos=_df_produtos, data=[
+                          True, False, False, False, False, False])
         if self._bandeira:
             self.aumentar_index()
             self.bandeira(False)
         self.save()
-
 
     def nao_marca_agua(self, _df_produtos: DataFrame) -> None:
         # Ação a ser realizada quando o botão "Não" é clicado
-        self.abrir_imagem(df_produtos=_df_produtos, data=[False, True, False, False, False, False])
+        self.abrir_imagem(df_produtos=_df_produtos, data=[
+                          False, True, False, False, False, False])
         if self._bandeira:
             self.aumentar_index()
             self.bandeira(False)
         self.save()
-
 
     def sim_texto(self, _df_produtos: DataFrame) -> None:
-        self.abrir_imagem(df_produtos=_df_produtos, data=[False, False, True, False, False, False])
+        self.abrir_imagem(df_produtos=_df_produtos, data=[
+                          False, False, True, False, False, False])
         if self._bandeira:
             self.aumentar_index()
             self.bandeira(False)
         self.save()
-
 
     def nao_texto(self, _df_produtos: DataFrame) -> None:
-        self.abrir_imagem(df_produtos=_df_produtos, data=[False, False, False, True, False, False])
+        self.abrir_imagem(df_produtos=_df_produtos, data=[
+                          False, False, False, True, False, False])
         if self._bandeira:
             self.aumentar_index()
             self.bandeira(False)
         self.save()
-
 
     def sim_logo(self, _df_produtos: DataFrame) -> None:
-        self.abrir_imagem(df_produtos=_df_produtos, data=[False, False, False, False, True, False])
+        self.abrir_imagem(df_produtos=_df_produtos, data=[
+                          False, False, False, False, True, False])
         if self._bandeira:
             self.aumentar_index()
             self.bandeira(False)
         self.save()
-
 
     def nao_logo(self, _df_produtos: DataFrame) -> None:
-        self.abrir_imagem(df_produtos=_df_produtos, data=[False, False, False, False, False, True])
+        self.abrir_imagem(df_produtos=_df_produtos, data=[
+                          False, False, False, False, False, True])
         if self._bandeira:
             self.aumentar_index()
             self.bandeira(False)
         self.save()
-
 
     def reset_data(self, _df_produtos: DataFrame):
         App.alter_data([False, False, False, False, False, False])
-        self.abrir_imagem(df_produtos=_df_produtos, data=[False, False, False, False, False, False])
+        self.abrir_imagem(df_produtos=_df_produtos, data=[
+                          False, False, False, False, False, False])
         if self._bandeira:
             self.aumentar_index()
             self.bandeira(False)
@@ -155,7 +159,6 @@ class App():
             self.save()
         self.abrir_imagem(df_produtos=_df_produtos, data=self._last_data)
 
-
     def foto_anterior(self, _df_produtos: DataFrame) -> None:
         self.bandeira(True)
         if self._bandeira:
@@ -165,8 +168,9 @@ class App():
         self.abrir_imagem(df_produtos=_df_produtos, data=self._last_data)
 
     def save(self) -> None:
-        self._df_copy.to_csv(f'{self._path_temp}/teste.csv', index=False)
-        self._df_copy.to_pickle(f'{self._path_temp}/_df_copy_temp')
+        self._df.to_csv(
+            f'{self._path_temp}/_df_copy_temp.csv', index=False)
+        self._df.to_pickle(f'{self._path_temp}/_df_copy_temp')
 
     @classmethod
     def bandeira(cls, pos: bool):
@@ -178,7 +182,12 @@ class App():
 
     @classmethod
     def diminuir_index(cls):
-        cls._current_index -= 1 if cls._current_index > 0 else 0
+        if cls._lock_index == cls._current_index:
+            return
+        if cls._current_index > cls._lock_index:
+            cls._current_index -= 1
+            return
+        # cls._current_index -= 1 if cls._current_index > 0 else 0
 
     @classmethod
     def alter_data(cls, values: list[bool]):
@@ -190,79 +199,89 @@ class App():
 
     @classmethod
     def alter_df(cls) -> None:
-        cls._df[cls._df.index.isin(cls._df_copy.index)].iloc[:, 7:] = cls._df_copy.iloc[:, 7:]
-
-
+        cls._df[cls._df.index.isin(cls._df.index)
+                ].iloc[:, 7:] = cls._df.iloc[:, 7:]
 
     @classmethod
     def set_values_df(cls, valor: list[bool]):
         if valor[0]:
-            cls._df_copy.loc[cls._current_index, 'tem_marca_dagua'] = True
+            cls._df.loc[cls._current_index, 'tem_marca_dagua'] = True
+            cls._df.loc[cls._current_index, 'ready'] = True
             return
         if valor[1]:
-            cls._df_copy.loc[cls._current_index, 'nao_tem_marca_dagua'] = True
+            cls._df.loc[cls._current_index, 'nao_tem_marca_dagua'] = True
+            cls._df.loc[cls._current_index, 'ready'] = True
             return
         if valor[2]:
-            cls._df_copy.loc[cls._current_index, 'tem_texto'] = True
+            cls._df.loc[cls._current_index, 'tem_texto'] = True
+            cls._df.loc[cls._current_index, 'ready'] = True
             return
         if valor[3]:
-            cls._df_copy.loc[cls._current_index, 'nao_tem_texto'] = True
+            cls._df.loc[cls._current_index, 'nao_tem_texto'] = True
+            cls._df.loc[cls._current_index, 'ready'] = True
             return
         if valor[4]:
-            cls._df_copy.loc[cls._current_index, 'tem_logo'] = True
+            cls._df.loc[cls._current_index, 'tem_logo'] = True
+            cls._df.loc[cls._current_index, 'ready'] = True
             return
         if valor[5]:
-            cls._df_copy.loc[cls._current_index, 'nao_tem_logo'] = True
+            cls._df.loc[cls._current_index, 'nao_tem_logo'] = True
+            cls._df.loc[cls._current_index, 'ready'] = True
             return
-        cls._df_copy.loc[cls._current_index, ['tem_marca_dagua', 'nao_tem_marca_dagua',
-                                                'tem_texto', 'nao_tem_texto', 'tem_logo',
-                                                'nao_tem_logo']] = False
-
+        cls._df.loc[cls._current_index, ['tem_marca_dagua', 'nao_tem_marca_dagua',
+                                         'tem_texto', 'nao_tem_texto', 'tem_logo',
+                                         'nao_tem_logo']] = False
 
     def main(self):
 
         # self.alter_data([False, False, False, False, False, False])
 
-        # self.abrir_imagem(self._df_copy,data=self._last_data)
+        # self.abrir_imagem(self._df,data=self._last_data)
 
-        botao_sim_marca_agua = tk.Button(self._frame_botoes, text="Tem marca d'agua?[Sim]",
-            command=lambda : self.sim_marca_agua(self._df_copy))
+        botao_sim_marca_agua = tk.Button(self._frame_botoes, background='black', fg='green',
+                                         border=5, text="Tem marca d'agua?[Sim]",
+                                         command=lambda: self.sim_marca_agua(self._df))
         botao_sim_marca_agua.pack(side='left', padx=5)
 
-        botao_nao_marca_agua = tk.Button(self._frame_botoes, text="Não tem marca d'agua?[Não]",
-            command=lambda : self.nao_marca_agua(self._df_copy))
-        botao_nao_marca_agua.pack(side='left', padx=5)
+        botao_nao_marca_agua = tk.Button(self._frame_botoes, background='yellow', fg='black',
+                                         border=5, text="Não tem marca d'agua?[Não]",
+                                         command=lambda: self.nao_marca_agua(self._df))
+        botao_nao_marca_agua.pack(side=['left'], padx=5)
 
-        botao_sim_texto = tk.Button(self._frame_botoes, text='Tem texto?[Sim]',
-            command=lambda : self.sim_texto(self._df_copy))
+        botao_sim_texto = tk.Button(self._frame_botoes, background='black', fg='green',
+                                    border=5, text='Tem texto?[Sim]',
+                                    command=lambda: self.sim_texto(self._df))
         botao_sim_texto.pack(side='left', padx=5)
 
-        botao_nao_texto = tk.Button(self._frame_botoes, text='Não tem texto?[Não]',
-            command=lambda : self.nao_texto(self._df_copy))
+        botao_nao_texto = tk.Button(self._frame_botoes, background='yellow', fg='black',
+                                         border=5, text='Não tem texto?[Não]',
+                                    command=lambda: self.nao_texto(self._df))
         botao_nao_texto.pack(side='left', padx=5)
 
-        botao_sim_logo = tk.Button(self._frame_botoes, text='Tem logo?[Sim]',
-            command=lambda : self.sim_logo(self._df_copy))
+        botao_sim_logo = tk.Button(self._frame_botoes, background='black', fg='green',
+                                   border=5, text='Tem logo?[Sim]',
+                                   command=lambda: self.sim_logo(self._df))
         botao_sim_logo.pack(side='left', padx=5)
 
-        botao_nao_logo = tk.Button(self._frame_botoes, text='Não tem logo?[Não]',
-            command=lambda : self.nao_logo(self._df_copy))
+        botao_nao_logo = tk.Button(self._frame_botoes, background='yellow', fg='black',
+                                         border=5, text='Não tem logo?[Não]',
+                                   command=lambda: self.nao_logo(self._df))
         botao_nao_logo.pack(side='left', padx=5)
 
         next_button = tk.Button(self._root, text="Próxima foto",
-            command=lambda : self.proxima_foto(self._df_copy))
+                                command=lambda: self.proxima_foto(self._df))
         next_button.pack(side='right', padx=10)
 
         prev_button = tk.Button(self._root, text="Foto anterior",
-            command=lambda : self.foto_anterior(self._df_copy))
+                                command=lambda: self.foto_anterior(self._df))
         prev_button.pack(side='left', padx=10)
 
         save_button = tk.Button(self._root, text='Salvar',
-            command=self.save)
+                                command=self.save)
         save_button.pack(side='left', padx=5)
 
         reset_button = tk.Button(self._root, text='Resetar',
-            command=lambda : self.reset_data(self._df_copy))
+                                 command=lambda: self.reset_data(self._df))
         reset_button.pack(side='left', padx=5)
 
         try:
@@ -271,7 +290,6 @@ class App():
             self._df.to_excel('results.xlsx')
         finally:
             self._df.to_excel('results.xlsx')
-
 
 
 if __name__ == '__main__':
